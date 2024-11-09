@@ -26,9 +26,7 @@ public class Applicant {
         this.login = login;
     }
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+
 
     public String getFirst_name() {
         return first_name;
@@ -88,13 +86,6 @@ public class Applicant {
         this.number = number;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 
 
 }

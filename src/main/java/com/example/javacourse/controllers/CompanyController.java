@@ -1,12 +1,9 @@
 package com.example.javacourse.controllers;
 
 import com.example.javacourse.models.*;
-import com.example.javacourse.repository.ApplicantRepository;
 import com.example.javacourse.repository.CompanyRepository;
 import com.example.javacourse.repository.UserRepository;
-import com.example.javacourse.repository.VacancyRepository;
 import com.example.javacourse.requests.DeleteRequest;
-import com.example.javacourse.requests.LoginRequest;
 import com.example.javacourse.requests.UserLoginRequest;
 import com.example.javacourse.services.CompanyService;
 import jakarta.transaction.Transactional;
@@ -16,7 +13,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -34,9 +30,6 @@ public class CompanyController {
     @Autowired
     private CompanyService companyService;
 
-    @Autowired
-
-    private VacancyRepository vacancyRepository;
 
     @PostMapping("/company")
     public ResponseEntity<String> saveCompany(@RequestBody Company company) {
@@ -54,8 +47,7 @@ public class CompanyController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Access denied");
             }
 
-            // Устанавливаем пользователя для анкеты
-            company.setUser(user);
+
 
             company.setName_company(company.getName_company());
             company.setActivity(company.getActivity());
@@ -72,8 +64,9 @@ public class CompanyController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving applicant");
         }
     }
+
     @PostMapping("/companyTake")
-    public ResponseEntity<?> getCompanyData(@RequestParam UserLoginRequest loginRequest) {
+    public ResponseEntity<?> getCompanyData(@RequestBody UserLoginRequest loginRequest) {
         String login = loginRequest.getLogin();
 
         // Проверка логина
@@ -91,9 +84,15 @@ public class CompanyController {
                 Optional<Company> companyOptional = companyRepository.findByLogin(login);
                 if (companyOptional.isPresent()) {
                     Company company = companyOptional.get();
+
+                    // Создаем ответ с данными компании
                     Map<String, Object> response = new HashMap<>();
-                    response.put("company", company);
-                    response.put("vacancies", company.getVacancies()); // Предполагается, что есть метод getVacancies
+                    response.put("companyName", company.getName_company());
+                    response.put("activity", company.getActivity());
+                    response.put("experience", company.getExperience());
+                    response.put("skills", company.getSkills());
+                    response.put("jobTitle", company.getJob_title());
+
                     return ResponseEntity.ok(response);
                 } else {
                     return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Анкета не найдена");
@@ -107,49 +106,12 @@ public class CompanyController {
     }
 
 
-    @PostMapping("/deletecomp")
-    @Transactional
-    public ResponseEntity<String> deleteVacancy(@RequestBody DeleteRequest deleteRequest) {
-        String login = deleteRequest.getLogin();
-        Long vacancyId = deleteRequest.getVacancyId();
-
-        // Проверка на null
-        if (login == null || vacancyId == null) {
-            return ResponseEntity.badRequest().body("Login или ID вакансии не могут быть null");
-        }
-
-        // Проверяем, существует ли пользователь с таким логином
-        Optional<User> userOptional = userRepository.findByLogin(login);
-        if (!userOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден.");
-        }
-
-        User user = userOptional.get();
-
-        // Проверяем, что пользователь является компанией
-        if (!"company".equals(user.getRole())) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Доступ запрещен.");
-        }
-
-        // Получаем компанию по логину
-        Optional<Company> companyOptional = companyRepository.findByLogin(login);
-        if (!companyOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Компания не найдена.");
-        }
-
-        Long companyId = companyOptional.get().getId();
-
-        // Проверяем, существует ли вакансия с указанным ID
-        Optional<Vacancy> vacancyOptional = vacancyRepository.findByIdAndCompanyId(vacancyId, companyId);
-        if (!vacancyOptional.isPresent()) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Вакансия с ID " + vacancyId + " не найдена для компании с ID " + companyId + ".");
-        }
-
-        // Удаляем вакансию
-        vacancyRepository.delete(vacancyOptional.get());
-        return ResponseEntity.ok("Вакансия успешно удалена.");
-    }
-
+//
+//    @PostMapping("/deletecomp")
+//    @Transactional
+//    public ResponseEntity<String> deleteVacancy(@RequestBody DeleteRequest deleteRequest) {
+//
+//    }
 
 
 

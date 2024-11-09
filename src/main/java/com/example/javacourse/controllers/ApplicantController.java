@@ -41,7 +41,7 @@ public class ApplicantController {
             }
 
             // Устанавливаем пользователя для анкеты
-            applicant.setUser(user);
+
 
             // Устанавливаем другие данные для анкеты
             applicant.setFirst_name(applicant.getFirst_name());

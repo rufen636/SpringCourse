@@ -17,19 +17,17 @@ public class Company {
     private String login;
     private String job_title;
 
-    private String vacancies; // Предположим, что вакансии хранятся в виде строки, разделённой запятыми
+//    public Company(String activity, int experience, String skills, String job_title) {
+//        this.activity = activity;
+//        this.experience = experience;
+//        this.skills = skills;
+//        this.job_title = job_title;
+//    }
+//
+//    public Company() {
+//
+//    }
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
-    public String getVacancies() {
-        return vacancies;
-    }
-
-    public void setVacancies(String vacancies) {
-        this.vacancies = vacancies;
-    }
 
     public String getName_company() {
         return name_company;
@@ -86,12 +84,6 @@ public class Company {
     public void setJob_title(String job_title) {
         this.job_title = job_title;
     }
-    public User getUser() {
-        return user;
-    }
 
-    public void setUser(User user) {
-        this.user = user;
-    }
 
 }
