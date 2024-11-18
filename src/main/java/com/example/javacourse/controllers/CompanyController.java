@@ -2,19 +2,17 @@ package com.example.javacourse.controllers;
 
 import com.example.javacourse.models.*;
 import com.example.javacourse.repository.CompanyRepository;
+import com.example.javacourse.repository.ResponseRepository;
 import com.example.javacourse.repository.UserRepository;
-import com.example.javacourse.requests.DeleteRequest;
 import com.example.javacourse.requests.UserLoginRequest;
 import com.example.javacourse.services.CompanyService;
-import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @RestController
 @RequestMapping("/api")
@@ -29,8 +27,11 @@ public class CompanyController {
 
     @Autowired
     private CompanyService companyService;
+    @Autowired
+    private ResponseRepository responseRepository; // Внедряем ResponseRepository
 
-
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
     @PostMapping("/company")
     public ResponseEntity<String> saveCompany(@RequestBody Company company) {
         try {
@@ -49,7 +50,7 @@ public class CompanyController {
 
 
 
-            company.setName_company(company.getName_company());
+            company.setName_company(company.getName());
             company.setActivity(company.getActivity());
             company.setExperience(company.getExperience());
             company.setSkills(company.getSkills());
@@ -64,48 +65,53 @@ public class CompanyController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error saving applicant");
         }
     }
-
     @PostMapping("/companyTake")
     public ResponseEntity<?> getCompanyData(@RequestBody UserLoginRequest loginRequest) {
         String login = loginRequest.getLogin();
-
-        // Проверка логина
         if (login == null || login.isEmpty()) {
             return ResponseEntity.badRequest().body("Логин не указан");
         }
 
-        // Логика работы с пользователем
-        Optional<User> userOptional = userRepository.findByLogin(login);
+        try {
+            // Получаем данные компании
+            List<Map<String, Object>> companyData = jdbcTemplate.queryForList(
+                    "SELECT id, name_company, activity, experience, skills, job_title FROM companys WHERE login = ?",
+                    login
+            );
 
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            if ("company".equals(user.getRole())) {
-                Optional<Company> companyOptional = companyRepository.findByLogin(login);
-                if (companyOptional.isPresent()) {
-                    Company company = companyOptional.get();
-
-                    // Создаем ответ с данными компании
-                    Map<String, Object> response = new HashMap<>();
-                    response.put("companyName", company.getName_company());
-                    response.put("activity", company.getActivity());
-                    response.put("experience", company.getExperience());
-                    response.put("skills", company.getSkills());
-                    response.put("jobTitle", company.getJob_title());
-
-                    return ResponseEntity.ok(response);
-                } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Анкета не найдена");
-                }
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Доступ запрещен");
+            if (companyData.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Компания не найдена");
             }
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден");
+
+//            int companyId = (Integer) companyData.get(0).get("id");
+
+            // Получаем вакансии компании
+            List<Map<String, Object>> vacancies = jdbcTemplate.queryForList(
+                    "SELECT id, activity, experience, skills, job_title FROM companys WHERE login = ?",
+                    login
+            );
+
+//            // Получаем отклики на вакансии компании
+//            List<Map<String, Object>> responses = jdbcTemplate.queryForList(
+//                    "SELECT applicants.first_name, applicants.last_name, applicants.number " +
+//                            "FROM responses " +
+//                            "JOIN applicants ON responses.applicant_id = applicants.id " +
+//                            "WHERE responses.company_id = ?",
+//                    login
+//            );
+
+            // Формируем ответ
+            Map<String, Object> result = Map.of(
+                    "company", companyData.get(0),
+                    "vacancies", vacancies
+//                    "responses", responses
+            );
+
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при получении данных: " + e.getMessage());
         }
     }
-
-
 //
 //    @PostMapping("/deletecomp")
 //    @Transactional

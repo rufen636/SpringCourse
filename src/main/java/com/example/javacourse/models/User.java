@@ -9,7 +9,7 @@ import jakarta.persistence.Id;
 public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     private String login;
     private String password;
@@ -29,7 +29,7 @@ public class User {
         this.role = role;
     }
 
-    public Long getId() {
+    public Integer getId() {
         return id;
     }
 

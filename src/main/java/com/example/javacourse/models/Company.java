@@ -2,6 +2,9 @@ package com.example.javacourse.models;
 
 import jakarta.persistence.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Entity
 @Table(name = "companys")
@@ -17,19 +20,17 @@ public class Company {
     private String login;
     private String job_title;
 
-//    public Company(String activity, int experience, String skills, String job_title) {
-//        this.activity = activity;
-//        this.experience = experience;
-//        this.skills = skills;
-//        this.job_title = job_title;
-//    }
-//
-//    public Company() {
-//
-//    }
+    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
+    private List<Vacancy> vacancies = new ArrayList<>();
 
+    public List<Vacancy> getVacancies() {
+        return vacancies;
+    }
 
-    public String getName_company() {
+    public void setVacancies(List<Vacancy> vacancies) {
+        this.vacancies = vacancies;
+    }
+    public String getName() {
         return name_company;
     }
 
