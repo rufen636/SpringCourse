@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigInteger;
 import java.util.Optional;
 
 @RestController
@@ -65,7 +66,7 @@ public class ApplicantController {
     @Transactional
     public ResponseEntity<Applicant> getApplicant(@RequestBody UserLoginRequest loginRequest) {
         String login = loginRequest.getLogin();
-
+        BigInteger id = loginRequest.getUserId();
         // Пытаемся найти пользователя по логину
         Optional<User> userOptional = userRepository.findByLogin(login);
 
@@ -89,33 +90,5 @@ public class ApplicantController {
         }
     }
 
-    // Эндпоинт для удаления профиля
-    @PostMapping("/deleteappl")
-    @Transactional
-    public ResponseEntity<String> deleteApplicant(@RequestBody UserLoginRequest loginRequest) {
-        String login = loginRequest.getLogin();
 
-        // Находим пользователя по логину
-        Optional<User> userOptional = userRepository.findByLogin(login);
-        if (userOptional.isPresent()) {
-            User user = userOptional.get();
-
-            // Проверка роли пользователя
-            if ("applicant".equals(user.getRole())) {
-                // Находим ID соискателя
-                Optional<Applicant> applicantOptional = applicantRepository.findByLogin(login);
-                if (applicantOptional.isPresent()) {
-                    // Удаляем анкету соискателя
-                    applicantRepository.delete(applicantOptional.get());
-                    return ResponseEntity.ok("Профиль успешно удален.");
-                } else {
-                    return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Профиль не найден.");
-                }
-            } else {
-                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Доступ запрещен.");
-            }
-        } else {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Пользователь не найден.");
-        }
-    }
 }

@@ -2,12 +2,14 @@ package com.example.javacourse.models;
 
 import jakarta.persistence.*;
 
+import java.math.BigInteger;
+
 @Entity
 @Table(name = "applicants")
 public class Applicant {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private BigInteger id;
 
     private String first_name; // Используйте camelCase для полей
     private String second_name;
@@ -20,6 +22,14 @@ public class Applicant {
 
     public String getLogin() {
         return login;
+    }
+
+    public BigInteger getId() {
+        return id;
+    }
+
+    public void setId(BigInteger id) {
+        this.id = id;
     }
 
     public void setLogin(String login) {

@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.web.bind.annotation.*;
 
-import java.math.BigInteger;
+        import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -29,13 +29,16 @@ public class FindController {
 
     @PostMapping("/findCandidates")
     public ResponseEntity<?> findCandidates(@RequestBody FindRequest findRequest) {
+
         String baseQuery = "SELECT * FROM applicants WHERE (first_name LIKE ? OR field_of_work LIKE ? OR skills LIKE ?)";
         List<Object> params = new ArrayList<>();
-        params.add("%" + findRequest.getQuery() + "%");
-        params.add("%" + findRequest.getQuery() + "%");
-        params.add("%" + findRequest.getQuery() + "%");
+        String query = findRequest.getQuery() == null ? "" : findRequest.getQuery();
+        params.add("%" + query + "%");
+        params.add("%" + query + "%");
+        params.add("%" + query + "%");
 
-        if (findRequest.getQuery() != null && findRequest.getQuery().isEmpty() && findRequest.getExperienceFilters() != null && !findRequest.getExperienceFilters().isEmpty()) {
+        // Если фильтры опыта не пусты, добавляем условия
+        if (findRequest.getExperienceFilters() != null && !findRequest.getExperienceFilters().isEmpty()) {
             String experienceCondition = findRequest.getExperienceFilters()
                     .stream()
                     .map(filter -> "experience = ?")
@@ -52,4 +55,5 @@ public class FindController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при поиске кандидатов");
         }
     }
+
 }

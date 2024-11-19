@@ -90,6 +90,12 @@ public class CompanyController {
                     "SELECT id, activity, experience, skills, job_title FROM companys WHERE login = ?",
                     login
             );
+            Long companyId = vacancies.id;
+            List<Map<String, Object>> responses = jdbcTemplate.queryForList(
+                    "SELECT applicants.first_name, applicants.number FROM responses JOIN applicants ON responses.applicant_id = applicants.id WHERE responses.company_id = ?", companyId
+            );
+
+
 
 //            // Получаем отклики на вакансии компании
 //            List<Map<String, Object>> responses = jdbcTemplate.queryForList(
@@ -103,8 +109,8 @@ public class CompanyController {
             // Формируем ответ
             Map<String, Object> result = Map.of(
                     "company", companyData.get(0),
-                    "vacancies", vacancies
-//                    "responses", responses
+                    "vacancies", vacancies,
+                    "responses", responses
             );
 
             return ResponseEntity.ok(result);

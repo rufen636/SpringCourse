@@ -20,16 +20,7 @@ public class Company {
     private String login;
     private String job_title;
 
-    @OneToMany(mappedBy = "company", cascade = CascadeType.ALL)
-    private List<Vacancy> vacancies = new ArrayList<>();
 
-    public List<Vacancy> getVacancies() {
-        return vacancies;
-    }
-
-    public void setVacancies(List<Vacancy> vacancies) {
-        this.vacancies = vacancies;
-    }
     public String getName() {
         return name_company;
     }
