@@ -2,7 +2,6 @@ package com.example.javacourse.controllers;
 
 import com.example.javacourse.models.*;
 import com.example.javacourse.repository.CompanyRepository;
-import com.example.javacourse.repository.ResponseRepository;
 import com.example.javacourse.repository.UserRepository;
 import com.example.javacourse.requests.UserLoginRequest;
 import com.example.javacourse.services.CompanyService;
@@ -24,11 +23,6 @@ public class CompanyController {
 
     @Autowired
     private CompanyRepository companyRepository;
-
-    @Autowired
-    private CompanyService companyService;
-    @Autowired
-    private ResponseRepository responseRepository; // Внедряем ResponseRepository
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
@@ -85,34 +79,34 @@ public class CompanyController {
 
 //            int companyId = (Integer) companyData.get(0).get("id");
 
-            // Получаем вакансии компании
+
+            if (companyData.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Компания не найдена"));
+            }
+
+            // Извлекаем ID компании из первого результата
+            Long companyId = (Long) companyData.get(0).get("id");
+
+            // Получаем вакансии этой компании
             List<Map<String, Object>> vacancies = jdbcTemplate.queryForList(
                     "SELECT id, activity, experience, skills, job_title FROM companys WHERE login = ?",
                     login
             );
-            Long companyId = vacancies.id;
+
+            // Получаем отклики на вакансии этой компании
             List<Map<String, Object>> responses = jdbcTemplate.queryForList(
-                    "SELECT applicants.first_name, applicants.number FROM responses JOIN applicants ON responses.applicant_id = applicants.id WHERE responses.company_id = ?", companyId
+                    "SELECT applicants.first_name, applicants.second_name, applicants.number FROM responses " +
+                            "JOIN applicants ON responses.applicant_id = applicants.id " +
+                            "WHERE responses.company_id = ?",
+                    companyId
             );
 
-
-
-//            // Получаем отклики на вакансии компании
-//            List<Map<String, Object>> responses = jdbcTemplate.queryForList(
-//                    "SELECT applicants.first_name, applicants.last_name, applicants.number " +
-//                            "FROM responses " +
-//                            "JOIN applicants ON responses.applicant_id = applicants.id " +
-//                            "WHERE responses.company_id = ?",
-//                    login
-//            );
-
-            // Формируем ответ
+            // Собираем все данные в одну карту
             Map<String, Object> result = Map.of(
-                    "company", companyData.get(0),
-                    "vacancies", vacancies,
-                    "responses", responses
+                    "company", companyData.get(0), // Данные компании
+                    "vacancies", vacancies,        // Вакансии компании
+                    "responses", responses         // Отклики на вакансии компании
             );
-
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Ошибка при получении данных: " + e.getMessage());
